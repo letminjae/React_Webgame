@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useContext} from "react";
-import { TableContext } from "./MineSearch";
+import { START_GAME ,TableContext } from "./MineSearch";
 
 const Form = () => {
     const [row, setRow] = useState(10);
@@ -7,7 +7,7 @@ const Form = () => {
     const [mine, setMine] = useState(20);
 
     //context API 에서 가져온 dispatch, redux의 useDispatch와 같은 사용법
-    const { dispatch } = useContext(TableContext)
+    const { dispatch } = useContext(TableContext);
 
     const onChangeRow = useCallback((e) => {
         setRow(e.target.value);
