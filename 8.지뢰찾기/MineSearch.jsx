@@ -15,7 +15,10 @@ const initialState = {
   tableData: [],
   timer: 0,
   result: "",
-  halted : true, // 중단된
+  halted: true, // 중단된
+  timer: 0,
+  result: "",
+  openedCount: 0,
 };
 
 //Action
@@ -37,12 +40,100 @@ const reducer = (state, action) => {
       };
     case OPEN_CELL:
       const tableData = [...state.tableData];
-      tableData[action.row] = [...state.tableData[action.row]];
-      tableData[action.row][action.cell] = CODE.OPENED;
+      tableData.forEach((row, i) => {
+        tableData[i] = [...row];
+      });
+      const checked = [];
+
+      let openedCount = 0;
+
+      const checkAround = (row, cell) => {
+        console.log(row, cell);
+        if (
+          row < 0 ||
+          row >= tableData.length ||
+          cell < 0 ||
+          cell >= tableData[0].length
+        ) {
+          return;
+        } // 상하좌우 없는칸은 안 열기
+        if (
+          [
+            CODE.OPENED,
+            CODE.FLAG,
+            CODE.FLAG_MINE,
+            CODE.QUESTION_MINE,
+            CODE.QUESTION,
+          ].includes(tableData[row][cell])
+        ) {
+          return;
+        } // 닫힌 칸만 열기
+        if (checked.includes(row + "/" + cell)) {
+          return;
+        } else {
+          checked.push(row + "/" + cell);
+        } // 한 번 연칸은 무시하기
+
+        // around = 오픈셀을 했다면 주변에 지뢰 몇개인지 확인하는 변수
+        let around = [tableData[row][cell - 1], tableData[row][cell + 1]];
+
+        // 윗줄이 있다면 윗줄 around 검사
+        if (tableData[row - 1]) {
+          around = around.concat([
+            tableData[row - 1][cell - 1],
+            tableData[row - 1][cell],
+            tableData[row - 1][cell + 1],
+          ]);
+        }
+        // 아랫줄이 있다면 아랫줄 around 검사
+        if (tableData[row + 1]) {
+          around = around.concat([
+            tableData[row + 1][cell - 1],
+            tableData[row + 1][cell],
+            tableData[row + 1][cell + 1],
+          ]);
+        }
+        //최종적으로 지뢰가 근처에 있다면, length를 표시
+        const count = around.filter(function (v) {
+          return [CODE.MINE, CODE.FLAG_MINE, CODE.QUESTION_MINE].includes(v);
+        }).length;
+
+        // 카운트가 빈칸, 0이면 주변칸 모두 오픈
+        if (count === 0) {
+          // 주변칸 오픈하는 조건문
+          if (row > -1) {
+            const near = [];
+            if (row - 1 > -1) {
+              near.push([row - 1, cell - 1]);
+              near.push([row - 1, cell]);
+              near.push([row - 1, cell + 1]);
+            }
+            near.push([row, cell - 1]);
+            near.push([row, cell + 1]);
+            if (row + 1 < tableData.length) {
+              near.push([row + 1, cell - 1]);
+              near.push([row + 1, cell]);
+              near.push([row + 1, cell + 1]);
+            }
+            near.forEach((n) => {
+              if (tableData[n[0]][n[1]] !== CODE.OPENED) {
+                checkAround(n[0], n[1]);
+              }
+            });
+          }
+        }
+        if (tableData[row][cell] === CODE.NORMAL) {
+          // 내 칸이 닫힌 칸이면 카운트 증가
+          openedCount += 1;
+        }
+        tableData[row][cell] = count;
+      };
+
+      checkAround(action.row, action.cell);
+
       return {
         ...state,
         tableData,
-        halted,
       };
     case CLICK_MINE: {
       const tableData = [...state.tableData];
@@ -137,7 +228,10 @@ const MineSearch = () => {
   //context API에선 value 값을 자식에게 넘겨줄때 마다 불필요한 리렌더링 발생, useMemo 사용, 캐싱한번 해야 성능저하가 덜됨
   const { tableData, halted, timer, result } = state;
 
-  const value = useMemo(() => ({ tableData, halted, dispatch }), [tableData, halted]);
+  const value = useMemo(
+    () => ({ tableData, halted, dispatch }),
+    [tableData, halted]
+  );
 
   return (
     //ContextAPI 사용시 데이터에 접근하기위해 Provider로 묶어줘야한다 redux의 Provider처럼!
