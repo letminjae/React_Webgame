@@ -1,4 +1,4 @@
-import React, { useReducer, createContext, useMemo } from "react";
+import React, { useReducer, createContext, useMemo, useEffect } from "react";
 import Form from "./Form";
 import Table from "./Table";
 import { CODE } from "./Code";
@@ -28,6 +28,7 @@ export const CLICK_MINE = "CLICK_MINE";
 export const FLAG_CELL = "FLAG_CELL";
 export const QUESTION_CELL = "QUESTION_CELL";
 export const NORMALIZE_CELL = "NORMALIZE_CELL";
+export const INCREMENT_TIMER = 'INCREMENT_TIMER';
 
 //Reducer
 const reducer = (state, action) => {
@@ -37,6 +38,7 @@ const reducer = (state, action) => {
         ...state,
         tableData: plantMine(action.row, action.cell, action.mine),
         halted: false,
+        timer: 0,
       };
     case OPEN_CELL:
       const tableData = [...state.tableData];
@@ -184,6 +186,12 @@ const reducer = (state, action) => {
         tableData,
       };
     }
+    case INCREMENT_TIMER: {
+      return {
+        ...state,
+        timer: state.timer + 1,
+      }
+    }
     default:
       return state;
   }
@@ -232,6 +240,18 @@ const MineSearch = () => {
     () => ({ tableData, halted, dispatch }),
     [tableData, halted]
   );
+
+  useEffect(() => {
+    let timer;
+    if (halted === false) {
+      timer = setInterval(() => {
+        dispatch({ type: INCREMENT_TIMER });
+      }, 1000);
+    }
+    return () => {
+      clearInterval(timer);
+    };
+  }, [halted]);
 
   return (
     //ContextAPI 사용시 데이터에 접근하기위해 Provider로 묶어줘야한다 redux의 Provider처럼!
