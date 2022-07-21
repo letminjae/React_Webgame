@@ -13,11 +13,14 @@ export const TableContext = createContext({
 //initalState
 const initialState = {
   tableData: [],
+  data : {
+    row : 0,
+    cell : 0,
+    mine : 0,
+  },
   timer: 0,
   result: "",
   halted: true, // 중단된
-  timer: 0,
-  result: "",
   openedCount: 0,
 };
 
@@ -28,7 +31,7 @@ export const CLICK_MINE = "CLICK_MINE";
 export const FLAG_CELL = "FLAG_CELL";
 export const QUESTION_CELL = "QUESTION_CELL";
 export const NORMALIZE_CELL = "NORMALIZE_CELL";
-export const INCREMENT_TIMER = 'INCREMENT_TIMER';
+export const INCREMENT_TIMER = "INCREMENT_TIMER";
 
 //Reducer
 const reducer = (state, action) => {
@@ -36,9 +39,15 @@ const reducer = (state, action) => {
     case START_GAME:
       return {
         ...state,
+        data: {
+          row: action.row,
+          cell: action.cell,
+          mine: action.mine,
+        },
         tableData: plantMine(action.row, action.cell, action.mine),
         halted: false,
         timer: 0,
+        openedCount: 0,
       };
     case OPEN_CELL:
       const tableData = [...state.tableData];
@@ -46,7 +55,6 @@ const reducer = (state, action) => {
         tableData[i] = [...row];
       });
       const checked = [];
-
       let openedCount = 0;
 
       const checkAround = (row, cell) => {
@@ -133,9 +141,21 @@ const reducer = (state, action) => {
 
       checkAround(action.row, action.cell);
 
+      //승리조건
+      let halted = false;
+      let result = '';
+      console.log(state.data.row * state.data.cell - state.data.mine, state.openedCount, openedCount);
+      if(state.data.row * state.data.cell - state.data.mine === state.openedCount + openedCount){ // 오픈한 칸과 row*cell-mine 이 같다면
+        halted = true;
+        result = `${state.timer}초만에 승리하셨습니다`;
+      }
+      console.log(halted, result)
       return {
         ...state,
         tableData,
+        openedCount: state.openedCount + openedCount,
+        halted,
+        result,
       };
     case CLICK_MINE: {
       const tableData = [...state.tableData];
@@ -190,7 +210,7 @@ const reducer = (state, action) => {
       return {
         ...state,
         timer: state.timer + 1,
-      }
+      };
     }
     default:
       return state;
@@ -258,9 +278,9 @@ const MineSearch = () => {
     <TableContext.Provider value={value}>
       <div>지뢰찾기</div>
       <Form />
-      <div>{state.timer}</div>
+      <div>{timer}</div>
       <Table />
-      <div>{state.result}</div>
+      <div>{result}</div>
     </TableContext.Provider>
   );
 };
