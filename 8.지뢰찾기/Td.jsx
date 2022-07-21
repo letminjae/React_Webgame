@@ -1,5 +1,12 @@
-import React, { memo, useCallback, useContext } from "react";
-import { CLICK_MINE, FLAG_CELL, NORMALIZE_CELL, OPEN_CELL, QUESTION_CELL, TableContext } from "./MineSearch";
+import React, { memo, useCallback, useContext, useMemo } from "react";
+import {
+  CLICK_MINE,
+  FLAG_CELL,
+  NORMALIZE_CELL,
+  OPEN_CELL,
+  QUESTION_CELL,
+  TableContext,
+} from "./MineSearch";
 import { CODE } from "./Code";
 
 const getTdStyle = (code) => {
@@ -54,8 +61,8 @@ const Td = memo(({ rowIndex, cellIndex }) => {
   const { tableData, dispatch, halted } = useContext(TableContext);
 
   const onClickTd = useCallback(() => {
-    if(halted){
-      return
+    if (halted) {
+      return;
     }
     switch (tableData[rowIndex][cellIndex]) {
       case CODE.OPENED:
@@ -75,30 +82,33 @@ const Td = memo(({ rowIndex, cellIndex }) => {
     }
   }, [tableData[rowIndex][cellIndex], halted]);
 
-  const onRightClickTd = useCallback((e) => {
-    e.preventDefault();
-    if(halted){
-      return
-    }
-    switch (tableData[rowIndex][cellIndex]) {
-      case CODE.NORMAL:
-      case CODE.MINE:
-        dispatch({ type: FLAG_CELL, row: rowIndex, cell: cellIndex });
+  const onRightClickTd = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (halted) {
         return;
-      case CODE.FLAG_MINE:
-      case CODE.FLAG:
-        dispatch({ type: QUESTION_CELL, row: rowIndex, cell: cellIndex });
-        return;
-      case CODE.QUESTION_MINE:
-      case CODE.QUESTION:
-        dispatch({ type: NORMALIZE_CELL, row: rowIndex, cell: cellIndex });
-        return;
-      default:
-        return;
-    }
-  }, [tableData[rowIndex][cellIndex], halted]);
+      }
+      switch (tableData[rowIndex][cellIndex]) {
+        case CODE.NORMAL:
+        case CODE.MINE:
+          dispatch({ type: FLAG_CELL, row: rowIndex, cell: cellIndex });
+          return;
+        case CODE.FLAG_MINE:
+        case CODE.FLAG:
+          dispatch({ type: QUESTION_CELL, row: rowIndex, cell: cellIndex });
+          return;
+        case CODE.QUESTION_MINE:
+        case CODE.QUESTION:
+          dispatch({ type: NORMALIZE_CELL, row: rowIndex, cell: cellIndex });
+          return;
+        default:
+          return;
+      }
+    },
+    [tableData[rowIndex][cellIndex], halted]
+  );
 
-  return (
+  return useMemo(() => (
     <td
       style={getTdStyle(tableData[rowIndex][cellIndex])}
       onClick={onClickTd}
@@ -106,7 +116,7 @@ const Td = memo(({ rowIndex, cellIndex }) => {
     >
       {getTdText(tableData[rowIndex][cellIndex])}
     </td>
-  );
+  ), [tableData[rowIndex][cellIndex]]);
 });
 
 export default Td;
