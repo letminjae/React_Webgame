@@ -3,7 +3,7 @@ const RefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 
 module.exports = {
   name: "wordrelay-setting",
-  mode: "development",
+  mode: "development", // 실서비스: production
   devtool: "eval", //빠르게하겠다
   resolve: {
     extensions: [".js", ".jsx"], // entry에 확장자('./client.jsx')를 안써도 웹팩이 찾아서 entry에 넣어줌

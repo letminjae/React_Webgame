@@ -19,6 +19,8 @@ const Numberbaseball = () => {
   const [tries, setTries] = useState([]);
   const inputEl = useRef(null);
 
+  console.log(answer)
+
   const handleOnChange = (event) => {
     setValue(event.target.value);
   };
@@ -35,7 +37,6 @@ const Numberbaseball = () => {
         },
       ]);
       setResult('홈런!');
-      alert('게임을 다시 실행합니다.');
       setValue('');
       setAnswer(getNumbers()); //여기서는 호출
       setTries([]);
