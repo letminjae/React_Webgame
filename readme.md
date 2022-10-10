@@ -495,4 +495,3 @@ export default useInterval;
     ```
   - createContext : context API를 사용할 기본값들을 설정(export)
   - useContext : Provider에 있는 value 데이터들을 다른 컴포넌트 등 전역에서 쓸수 있는 함수
-  - context API 최적화 : 
