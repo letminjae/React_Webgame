@@ -424,11 +424,75 @@ export default useInterval;
 
 <img src='https://user-images.githubusercontent.com/96935557/194033937-73529d6b-8f63-470e-be8b-5ac6edbfa32e.gif'>
 
--
+- useReducer를 왜 쓰는가?
+  - useState가 100개가 넘는다면? 하나하나 기본 작성하는 것에 불편함을 느껴 useReducer의 필요성 재고
+  - 또한 컴포넌트 상태 관련 로직을 컴포넌트에서 분리시켜 다른 파일에 불러와 작성도 가능.
+  - reducer란 무엇일까? reducer는 현재 상태(initialState)와 액션(action) 객체를 파라미터를 받아와 상태를 변화시키는 함수.
+  - action : 업데이트를 위한 정보
+  - dispatch : action을 실행시켜주기 위한 함수.
+  ```jsx
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case SET_WINNER:
+        // state.winner = action.winner; 이렇게 하면 안됨.
+        return {
+          ...state,
+          winner: action.winner,
+        };
+      case CLICK_CELL: {
+        const tableData = [...state.tableData];
+        tableData[action.row] = [...tableData[action.row]];
+        tableData[action.row][action.cell] = state.turn;
+        return {
+          ...state,
+          tableData,
+          recentCell: [action.row, action.cell],
+        };
+      }
+      case CHANGE_TURN: {
+        return {
+          ...state,
+          turn: state.turn === 'O' ? 'X' : 'O',
+        };
+      }
+      case RESET_GAME: {
+        return {
+          ...state,
+          turn: 'O',
+          tableData: [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', ''],
+          ],
+          recentCell: [-1, -1],
+        };
+      }
+      default:
+        return state;
+    }
+  };
+  ```
 
 ## 지뢰찾기
 ### context API 사용방법 학습
 
 <img src='https://user-images.githubusercontent.com/96935557/194033745-2c529406-fdf8-4ad3-85ba-5f84a914c232.gif'>
 
--
+- context API를 사용하는 이유
+  - 특정 함수를 특정 컴포넌트를 거쳐서 원하는 컴포넌트에게 전달하는 작업은 리액트로 개발을 하다보면 자주 발생 할 수 있는 작업.
+  - 컴포넌트 1개정도를 거쳐서 전달하는건 사실 그렇게 큰 불편함도 없지만, 만약 3~4개 이상의 컴포넌트를 거쳐서 전달을 해야 하는 일이 발생하게 된다면 이는 매우 번거로울 것.
+  - 전역으로 값(상태, 함수, 라이브러리, DOM,,,)을 아무 컴포넌트에 전달해줄수 있는 함수 => `context API`
+
+- *`context API 사용법`*
+  - Provider 설정 : Context API 사용시 데이터에 접근하기위해 redux의 Provider처럼 똑같이 Provider로 묶어줘야한다. `value 값 설정 필수!`
+    - value : 컴포넌트가 리렌더링 되면 value 객체도 다시 생성되기 때문에 최적화 진행.
+    ```jsx
+      const value = useMemo(() => (
+        { tableData, halted, dispatch }
+        ), [tableData, halted]);
+    ```
+  - createContext : context API를 사용할 기본값들을 설정(export)
+  - useContext : Provider에 있는 value 데이터들을 다른 컴포넌트 등 전역에서 쓸수 있는 함수
+  - context API 최적화 : 
